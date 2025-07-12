@@ -21,6 +21,10 @@
       <button type="submit" title="Send Message" aria-label="Send Message">➤</button>
     </form>
   </div>
+<!-- Image Preview Modal -->
+<div id="image-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000000d9; justify-content:center; align-items:center; z-index:9999;">
+  <img id="modal-image" src="" style="max-width:90%; max-height:90%; border-radius:10px;" />
+</div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
