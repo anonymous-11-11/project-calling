@@ -208,6 +208,15 @@ header {
   padding-left: 10px;
   user-select: none;
 }
+/* Optional smooth zoom effect */
+#modal-image {
+  transition: transform 0.2s ease;
+}
+
+#modal-image:hover {
+  transform: scale(1.01);
+}
+
 
 /* Mobile Responsive */
 @media (max-width: 640px) {
