@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project Calling</title>
+  <style>
+    body {
+      background: #0f2027;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    #friends {
+      margin: 20px auto;
+      width: 300px;
+    }
+    .friend {
+      background: #203a43;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    button {
+      padding: 8px 14px;
+      margin-top: 10px;
+      background-color: #00ffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #endCallBtn {
+      background-color: #ff4d4d;
+      display: none;
+    }
+    #receiveCallBtn {
+      background-color: #00ff7f;
+      display: none;
+    }
+    audio {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome, Caller</h1>
+  <p>Your Socket ID: <span id="my-id">loading...</span></p>
+
+  <div id="friends">
+    <div class="friend">
+      <p>Call a Friend (enter socket id):</p>
+      <input type="text" id="target-id" placeholder="Enter socket ID" style="width: 90%; padding: 5px;">
+      <button onclick="startCall()">Call</button>
+      <button onclick="endCall()" id="endCallBtn">End Call</button>
+      <button onclick="receiveCall()" id="receiveCallBtn">Receive Call</button>
+    </div>
+  </div>
+
+  <h3>Audio Call</h3>
+  <audio id="remoteAudio" autoplay></audio>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>

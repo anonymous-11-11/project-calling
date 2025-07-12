@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chatroom - Project</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="chat-container">
+    <header>Project Chatroom</header>
+    <div id="chat-box"></div>
+    <div id="typing-status"></div>
+    <form id="chat-form">
+      <input id="message-input" type="text" placeholder="Type a message..." autocomplete="off" />
+      <button type="button" id="image-button" title="Send Image" aria-label="Send Image">
+        <!-- WhatsApp style paperclip icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M18.364 5.636a5 5 0 0 0-7.07 0L7.05 10.88a3 3 0 1 0 4.24 4.24l3.535-3.536a1 1 0 1 0-1.414-1.414L9.88 13.707a1 1 0 1 1-1.414-1.414l3.535-3.535a3 3 0 1 1 4.242 4.242l-3.535 3.536a5 5 0 1 1-7.07-7.07l3.535-3.535a7 7 0 1 1 9.9 9.9l-3.535 3.535a7 7 0 0 1-9.9-9.9l1.414 1.414a5 5 0 0 0 7.07 7.07l3.535-3.536a1 1 0 1 0-1.414-1.414l-3.535 3.535a3 3 0 1 1-4.242-4.242l3.535-3.535a5 5 0 0 0 7.07 0z"/></svg>
+      </button>
+      <input id="image-input" type="file" accept="image/*" />
+      <button type="submit" title="Send Message" aria-label="Send Message">➤</button>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
