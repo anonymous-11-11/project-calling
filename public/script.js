@@ -157,6 +157,19 @@ chatBox.addEventListener('scroll', () => {
     }
   });
 });
+// Image preview modal
+const imageModal = document.getElementById('image-modal');
+const modalImage = document.getElementById('modal-image');
+
+document.addEventListener('click', function (e) {
+  if (e.target.classList.contains('chat-image')) {
+    modalImage.src = e.target.src;
+    imageModal.style.display = 'flex';
+  } else if (e.target === imageModal) {
+    imageModal.style.display = 'none';
+  }
+});
+
 
 // 🧠 Image compression utility
 function compressBase64Image(base64Str, maxWidth, maxHeight, quality = 0.6) {
