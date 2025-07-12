@@ -10,9 +10,8 @@ const imageInput = document.getElementById('image-input');
 const imageButton = document.getElementById('image-button');
 const typingStatus = document.getElementById('typing-status');
 
-let replyTo = null; // reply message id
+let replyTo = null;
 let messageIdCounter = 0;
-
 const notificationSound = new Audio('notification.mp3');
 
 socket.emit('join', currentUser);
@@ -31,23 +30,23 @@ chatForm.addEventListener('submit', (e) => {
   messageInput.value = '';
   replyTo = null;
   removeReplyBox();
-
   socket.emit('stop-typing', targetUser);
 });
 
 imageButton.addEventListener('click', () => imageInput.click());
 
-imageInput.addEventListener('change', () => {
+imageInput.addEventListener('change', async () => {
   const file = imageInput.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
+    const compressed = await compressBase64Image(reader.result, 800, 600, 0.6);
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgId = 'msg_' + (++messageIdCounter);
 
-    appendMessage(currentUser, reader.result, time, 'image', msgId, null, replyTo);
-    socket.emit('chat-message', { to: targetUser, from: currentUser, message: reader.result, time, type: 'image', id: msgId, replyTo });
+    appendMessage(currentUser, compressed, time, 'image', msgId, null, replyTo);
+    socket.emit('chat-message', { to: targetUser, from: currentUser, message: compressed, time, type: 'image', id: msgId, replyTo });
 
     replyTo = null;
     removeReplyBox();
@@ -56,6 +55,7 @@ imageInput.addEventListener('change', () => {
   imageInput.value = '';
 });
 
+// Typing indicator
 messageInput.addEventListener('input', () => {
   socket.emit('typing', targetUser);
   clearTimeout(window.typingTimeout);
@@ -72,24 +72,16 @@ socket.on('chat-message', (data) => {
   markMessageDelivered(data.id);
 });
 
-socket.on('typing', (username) => {
-  typingStatus.innerText = `${username} is typing...`;
-});
+socket.on('typing', (username) => typingStatus.innerText = `${username} is typing...`);
+socket.on('stop-typing', () => typingStatus.innerText = '');
+socket.on('message-read-confirm', ({ id }) => markMessageReadConfirmed(id));
 
-socket.on('stop-typing', () => {
-  typingStatus.innerText = '';
-});
-
-socket.on('message-read-confirm', ({ id, from }) => {
-  markMessageReadConfirmed(id);
-});
-
+// Append message
 function appendMessage(sender, content, time, type, id, status = 'delivered', replyToId = null) {
   const msgDiv = document.createElement('div');
   msgDiv.className = 'message ' + (sender === currentUser ? 'sent' : 'received');
   msgDiv.dataset.id = id;
 
-  // Reply box inside message
   let replyHTML = '';
   if (replyToId) {
     const repliedMsg = document.querySelector(`.message[data-id="${replyToId}"]`);
@@ -100,16 +92,13 @@ function appendMessage(sender, content, time, type, id, status = 'delivered', re
     }
   }
 
-  // Tick marks
-  let tickHTML = '✔️';
-  if (status === 'read') tickHTML = '✔✔';
-  if (status === 'read-confirmed') tickHTML = '✔✔ (blue)';
+  let tickHTML = status === 'read-confirmed' ? '✔✔ (blue)' : status === 'read' ? '✔✔' : '✔️';
 
   let msgContentHTML = '';
   if (type === 'text') {
     msgContentHTML = `<p class="msg-content">${content}</p>`;
   } else if (type === 'image') {
-    msgContentHTML = `<img class="chat-image" src="${content}" alt="Image message" />`;
+    msgContentHTML = `<img class="chat-image" src="${content}" alt="Image" />`;
   }
 
   msgDiv.innerHTML = `
@@ -118,31 +107,23 @@ function appendMessage(sender, content, time, type, id, status = 'delivered', re
     <div class="meta">${time} <span class="tick">${tickHTML}</span></div>
   `;
 
-  // Right click to reply
   msgDiv.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     createReplyBox(sender, type === 'text' ? content : '[Image]', id);
   });
 
   chatBox.appendChild(msgDiv);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  // Disable auto scroll: no scroll after append
 }
 
+// Reply box create & remove
 function createReplyBox(sender, content, id) {
   removeReplyBox();
-
   const replyBox = document.createElement('div');
   replyBox.id = 'reply-box';
-  replyBox.innerHTML = `
-    Replying to <b>${sender}</b>: "${content.length > 30 ? content.substr(0, 30) + '...' : content}"
-    <button id="cancel-reply">Cancel</button>
-  `;
-
-  const chatContainer = document.getElementById('chat-container');
-  chatContainer.insertBefore(replyBox, chatForm);
-
+  replyBox.innerHTML = `Replying to <b>${sender}</b>: "${content.length > 30 ? content.substr(0, 30) + '...' : content}" <button id="cancel-reply">Cancel</button>`;
+  document.getElementById('chat-container').insertBefore(replyBox, chatForm);
   replyTo = id;
-
   document.getElementById('cancel-reply').onclick = () => {
     replyTo = null;
     removeReplyBox();
@@ -154,26 +135,20 @@ function removeReplyBox() {
   if (existing) existing.remove();
 }
 
+// Ticks
 function markMessageDelivered(id) {
-  const msgElem = document.querySelector(`.message[data-id="${id}"]`);
-  if (msgElem) {
-    const tickSpan = msgElem.querySelector('.tick');
-    if (tickSpan) tickSpan.textContent = '✔✔'; // double tick delivered
-  }
+  const msg = document.querySelector(`.message[data-id="${id}"] .tick`);
+  if (msg) msg.textContent = '✔✔';
 }
-
 function markMessageReadConfirmed(id) {
-  const msgElem = document.querySelector(`.message[data-id="${id}"]`);
-  if (msgElem) {
-    const tickSpan = msgElem.querySelector('.tick');
-    if (tickSpan) tickSpan.textContent = '✔✔ (blue)';
-  }
+  const msg = document.querySelector(`.message[data-id="${id}"] .tick`);
+  if (msg) msg.textContent = '✔✔ (blue)';
 }
 
-// Read confirmation on scroll (for received messages)
+// Scroll = Message read
 chatBox.addEventListener('scroll', () => {
-  const messages = [...chatBox.querySelectorAll('.message.received')];
-  messages.forEach((msg) => {
+  const msgs = [...chatBox.querySelectorAll('.message.received')];
+  msgs.forEach((msg) => {
     const rect = msg.getBoundingClientRect();
     if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
       const msgId = msg.dataset.id;
@@ -182,3 +157,34 @@ chatBox.addEventListener('scroll', () => {
     }
   });
 });
+
+// 🧠 Image compression utility
+function compressBase64Image(base64Str, maxWidth, maxHeight, quality = 0.6) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth || height > maxHeight) {
+        if (width / height > maxWidth / maxHeight) {
+          height = Math.round((maxWidth / width) * height);
+          width = maxWidth;
+        } else {
+          width = Math.round((maxHeight / height) * width);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.src = base64Str;
+  });
+}
