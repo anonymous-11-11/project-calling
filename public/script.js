@@ -111,9 +111,15 @@ function appendMessage(sender, content, time, type, id, status = 'delivered', re
     e.preventDefault();
     createReplyBox(sender, type === 'text' ? content : '[Image]', id);
   });
-
+function autoScroll() {
+  // Check if user is near the bottom before adding a new message
+  const shouldScroll = chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 50;
+  if (shouldScroll) {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+}
   chatBox.appendChild(msgDiv);
-  // Disable auto scroll: no scroll after append
+  autoScroll();
 }
 
 // Reply box create & remove
