@@ -41,7 +41,7 @@ imageInput.addEventListener('change', async () => {
 
   const reader = new FileReader();
   reader.onload = async () => {
-    const compressed = await compressBase64Image(reader.result, 800, 600, 0.6);
+    const compressed = await compressBase64Image(reader.result, 800, 600); // quality fixed inside
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgId = 'msg_' + (++messageIdCounter);
 
@@ -111,15 +111,14 @@ function appendMessage(sender, content, time, type, id, status = 'delivered', re
     e.preventDefault();
     createReplyBox(sender, type === 'text' ? content : '[Image]', id);
   });
-function autoScroll() {
-  // Check if user is near the bottom before adding a new message
-  const shouldScroll = chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 50;
-  if (shouldScroll) {
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-}
+
   chatBox.appendChild(msgDiv);
   autoScroll();
+}
+
+// ✅ Always auto scroll
+function autoScroll() {
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 // Reply box create & remove
@@ -163,6 +162,7 @@ chatBox.addEventListener('scroll', () => {
     }
   });
 });
+
 // Image preview modal
 const imageModal = document.getElementById('image-modal');
 const modalImage = document.getElementById('modal-image');
@@ -176,9 +176,8 @@ document.addEventListener('click', function (e) {
   }
 });
 
-
-// 🧠 Image compression utility
-function compressBase64Image(base64Str, maxWidth, maxHeight, quality = 0.6) {
+// ✅ Fixed 75% image quality compression function
+function compressBase64Image(base64Str, maxWidth, maxHeight, quality = 0.75) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
